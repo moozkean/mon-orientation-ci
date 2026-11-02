@@ -1,0 +1,31 @@
+name: Tests Laravel
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Installer PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: curl, dom, fileinfo, mbstring, pdo_sqlite, sqlite3, xml
+          coverage: none
+
+      - name: Vérifier composer.json
+        run: composer validate --no-check-publish
+
+      - name: Installer les dépendances
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Exécuter les tests
+        run: vendor/bin/phpunit
