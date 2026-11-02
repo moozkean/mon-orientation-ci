@@ -1,0 +1,343 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Mon Orientation CI - REST API",
+    "description": "API REST officielle de la plateforme nationale d'orientation académique post-BAC pour la République de Côte d'Ivoire. Développée pour le Ministère de l'Enseignement Supérieur et de la Recherche Scientifique (MESRS).",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Équipe Technique Mon Orientation CI",
+      "email": "contact@orientation.ci",
+      "url": "https://orientation.ci"
+    }
+  },
+  "servers": [
+    {
+      "url": "/api",
+      "description": "API de ce serveur WAMP"
+    },
+    {
+      "url": "https://api.orientation.ci/v1",
+      "description": "Serveur de Production MESRS CI"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Entrez le jeton JWT avec le préfixe Bearer."
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "name": { "type": "string", "example": "Amadou Traoré" },
+          "email": { "type": "string", "example": "amadou.traore@student.ci" },
+          "phone": { "type": "string", "example": "+225 05 01 02 03 04" },
+          "role": { "type": "string", "enum": ["student", "admin", "counselor"], "example": "student" },
+          "bac_year": { "type": "integer", "example": 2026 },
+          "bac_mention": { "type": "string", "example": "Bien" },
+          "city": { "$ref": "#/components/schemas/City" },
+          "bac_serie": { "$ref": "#/components/schemas/Serie" }
+        }
+      },
+      "City": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "name": { "type": "string", "example": "Abidjan" },
+          "region": { "type": "string", "example": "Lagunes" }
+        }
+      },
+      "Serie": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 3 },
+          "code": { "type": "string", "example": "C" },
+          "name": { "type": "string", "example": "Scientifique (Mathématiques & Sciences Physiques)" },
+          "stream": { "type": "string", "example": "Enseignement Général" }
+        }
+      },
+      "Program": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "name": { "type": "string", "example": "Licence en Génie Logiciel & Intelligence Artificielle" },
+          "code": { "type": "string", "example": "LIC-GL-IA" },
+          "degree_level": { "type": "string", "example": "Licence" },
+          "duration_years": { "type": "integer", "example": 3 },
+          "difficulty_level": { "type": "string", "example": "Exigeant" },
+          "market_demand_rating": { "type": "integer", "example": 5 },
+          "career_opportunities": {
+            "type": "array",
+            "items": { "type": "string" },
+            "example": ["Développeur Fullstack", "Ingénieur IA & Data", "Architecte Cloud"]
+          }
+        }
+      },
+      "Institution": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "name": { "type": "string", "example": "Université Félix Houphouët-Boigny" },
+          "sigle": { "type": "string", "example": "UFHB" },
+          "type": { "type": "string", "example": "universite_publique" },
+          "website": { "type": "string", "example": "https://www.univ-fhb.edu.ci" },
+          "is_accredited_mesrs": { "type": "boolean", "example": true },
+          "is_accredited_cames": { "type": "boolean", "example": true }
+        }
+      },
+      "Recommendation": {
+        "type": "object",
+        "properties": {
+          "program_id": { "type": "integer", "example": 1 },
+          "program_name": { "type": "string", "example": "Licence en Génie Logiciel & Intelligence Artificielle" },
+          "compatibility_score": { "type": "integer", "example": 94 },
+          "score_breakdown": {
+            "type": "object",
+            "properties": {
+              "serie_alignment": { "type": "integer", "example": 95 },
+              "academic_grades": { "type": "integer", "example": 90 },
+              "interests_profile": { "type": "integer", "example": 95 },
+              "market_demand": { "type": "integer", "example": 100 }
+            }
+          },
+          "evaluation": {
+            "type": "object",
+            "properties": {
+              "level": { "type": "string", "example": "Compatibilité Excellente" },
+              "verdict": { "type": "string", "example": "Votre profil académique correspond parfaitement aux exigences de cette formation." }
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/metadata": {
+      "get": {
+        "summary": "Récupérer les métadonnées globales du système",
+        "description": "Retourne toutes les séries du BAC, villes universitaires, domaines d'études et niveaux de diplômes pour initialiser l'application mobile.",
+        "responses": {
+          "200": {
+            "description": "Métadonnées retournées avec succès"
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "summary": "Inscription d'un nouveau bachelier",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "email", "password", "password_confirmation"],
+                "properties": {
+                  "name": { "type": "string", "example": "Amadou Traoré" },
+                  "email": { "type": "string", "example": "amadou.traore@student.ci" },
+                  "phone": { "type": "string", "example": "+225 05 01 02 03 04" },
+                  "password": { "type": "string", "example": "Secret123!" },
+                  "password_confirmation": { "type": "string", "example": "Secret123!" },
+                  "city_id": { "type": "integer", "example": 1 },
+                  "bac_serie_id": { "type": "integer", "example": 3 },
+                  "bac_year": { "type": "integer", "example": 2026 },
+                  "bac_mention": { "type": "string", "example": "Bien" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Compte créé et jeton JWT délivré" },
+          "422": { "description": "Erreur de validation" }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Connexion étudiant ou administrateur",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["login", "password"],
+                "properties": {
+                  "login": { "type": "string", "example": "amadou.traore@student.ci" },
+                  "password": { "type": "string", "example": "Secret123!" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Connexion réussie avec token JWT" },
+          "401": { "description": "Identifiants invalides" }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "summary": "Profil de l'étudiant connecté",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Données utilisateur retournées" },
+          "401": { "description": "Non autorisé" }
+        }
+      }
+    },
+    "/filieres": {
+      "get": {
+        "summary": "Catalogue paginé des filières avec filtres",
+        "parameters": [
+          { "name": "search", "in": "query", "schema": { "type": "string" } },
+          { "name": "bac_serie_id", "in": "query", "schema": { "type": "integer" } },
+          { "name": "city_id", "in": "query", "schema": { "type": "integer" } },
+          { "name": "degree_level", "in": "query", "schema": { "type": "string", "enum": ["BTS", "Licence", "Master", "Ingenieur", "Doctorat"] } },
+          { "name": "domain_id", "in": "query", "schema": { "type": "integer" } },
+          { "name": "is_public", "in": "query", "schema": { "type": "boolean" } }
+        ],
+        "responses": {
+          "200": { "description": "Liste paginée des formations" }
+        }
+      }
+    },
+    "/filieres/{idOrSlug}": {
+      "get": {
+        "summary": "Détails complets d'une filière",
+        "parameters": [
+          { "name": "idOrSlug", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Détails de la filière et universités associées" },
+          "404": { "description": "Filière non trouvée" }
+        }
+      }
+    },
+    "/etablissements": {
+      "get": {
+        "summary": "Catalogue des universités et grandes écoles",
+        "parameters": [
+          { "name": "search", "in": "query", "schema": { "type": "string" } },
+          { "name": "city_id", "in": "query", "schema": { "type": "integer" } },
+          { "name": "type", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Liste paginée des établissements" }
+        }
+      }
+    },
+    "/orientation/questions": {
+      "get": {
+        "summary": "Questions du questionnaire d'orientation académique",
+        "responses": {
+          "200": { "description": "Liste des questions RIASEC et préférences" }
+        }
+      }
+    },
+    "/orientation/submit": {
+      "post": {
+        "summary": "Soumettre le questionnaire et calculer les recommandations",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["bac_serie_id"],
+                "properties": {
+                  "bac_serie_id": { "type": "integer", "example": 3 },
+                  "grades": {
+                    "type": "object",
+                    "example": { "Mathématiques": 15, "Physique-Chimie": 14, "Français": 12 }
+                  },
+                  "quiz_answers": {
+                    "type": "object",
+                    "example": { "1": "I", "2": "I", "3": "I", "4": "R" }
+                  },
+                  "selected_interest_ids": {
+                    "type": "array",
+                    "items": { "type": "integer" },
+                    "example": [1, 2]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Score de compatibilité et filières recommandées" }
+        }
+      }
+    },
+    "/comparison": {
+      "post": {
+        "summary": "Comparer 2 à 3 filières côte à côte",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["program_ids"],
+                "properties": {
+                  "program_ids": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 3,
+                    "items": { "type": "integer" },
+                    "example": [1, 2, 4]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Matrice comparative des filières" }
+        }
+      }
+    },
+    "/favorites": {
+      "get": {
+        "summary": "Liste des filières et établissements favoris",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Favoris de l'utilisateur" }
+        }
+      }
+    },
+    "/favorites/toggle": {
+      "post": {
+        "summary": "Ajouter ou retirer un favori",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["type", "id"],
+                "properties": {
+                  "type": { "type": "string", "enum": ["program", "institution"], "example": "program" },
+                  "id": { "type": "integer", "example": 1 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Statut favori mis à jour" }
+        }
+      }
+    }
+  }
+}
